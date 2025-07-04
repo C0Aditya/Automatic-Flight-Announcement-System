@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Audio Player & Information</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234F46E5'%3E%3Cpath d='M21 16v-2a1 1 0 00-1-1h-3.268a2 2 0 00-1.789.967l-.666 1.334a2 2 0 01-1.789.967H8.5a2 2 0 00-1.789.967l-.666 1.334a2 2 0 01-1.789.967H3a1 1 0 00-1 1v2a1 1 0 001 1h18a1 1 0 001-1zM10 4a2 2 0 11-4 0 2 2 0 014 0zM18 4a2 2 0 11-4 0 2 2 0 014 0z'%3E%3C/path%3E%3C/svg%3E" type="image/svg+xml">
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a modern look */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* General button transition for smooth hovers */
+        button, a.inline-flex {
+            transition: all 0.2s ease-in-out;
+        }
+        /* Custom styles for button hover effects */
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        /* Style for the vertical divider */
+        .vertical-divider {
+            width: 1px;
+            background-color: #e2e8f0; /* Tailwind gray-200 */
+            margin: 0 1.5rem; /* Increased margin for better separation */
+        }
+        /* Ensure table cells have consistent padding and add hover effect */
+        .flight-table th, .flight-table td {
+            padding: 0.75rem 1rem;
+        }
+        .flight-table tbody tr:hover {
+            background-color: #f5f5f5; /* Light gray on hover */
+            transition: background-color 0.15s ease-in-out;
+        }
+        /* Input focus styles */
+        input[type="text"]:focus,
+        input[type="time"]:focus,
+        input[type="number"]:focus {
+            border-color: #6366f1; /* Indigo-500 */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Indigo-500 with transparency */
+        }
+        /* Simple spinner animation */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-left-color: #ffffff; /* White spinner */
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Message box styling */
+        .message-box {
+            animation: fadeInOut 5s forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white shadow-sm py-4 px-6 md:px-8">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Logo/App Title -->
+            <div class="text-2xl font-bold text-gray-800">
+                Flight Announcements
+            </div>
+
+            <!-- Navigation Buttons -->
+            <nav class="space-x-4">
+                <a href="/insert" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 btn-primary">
+                    Insert Data
+                </a>
+                <a href="/travel_tips" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-teal-700 bg-teal-100 hover:bg-teal-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition ease-in-out duration-150 btn-secondary">
+                    Travel Tips
+                </a>
+                <a href="/admin" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 btn-secondary">
+                    Admin Panel
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area - Two Column Layout -->
+    <main class="flex-grow flex justify-center p-4">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-7xl flex flex-col md:flex-row">
+
+            <!-- Left Column: Audio Playback & Scheduling (approx 40%) -->
+            <div class="w-full md:w-2/5 md:pr-4 mb-8 md:mb-0">
+                <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Audio Playback & Scheduling</h1>
+
+                <!-- Message/Error Display -->
+                <div id="messagesContainer" class="mb-4">
+                    {% if message %}
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-md relative mb-2 message-box" role="alert">
+                            <span class="block sm:inline">{{ message | safe }}</span>
+                        </div>
+                    {% endif %}
+                    {% if error %}
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative mb-2 message-box" role="alert">
+                            <span class="block sm:inline">{{ error | safe }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Audio Playback Form -->
+                <form method="POST" class="space-y-4" id="audioForm">
+                    <div id="audioInputsContainer" class="space-y-4">
+                        <!-- Initial input fields -->
+                        <div class="audio-input-group flex flex-col sm:flex-row items-end space-y-2 sm:space-y-0 sm:space-x-2">
+                            <div class="flex-grow">
+                                <label for="phrase-0" class="block text-sm font-medium text-gray-700">Enter Phrase (comma-separated):</label>
+                                <input type="text" id="phrase-0" name="phrase[]" required
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="schedule_time-0" class="block text-sm font-medium text-gray-700">Schedule Time (HH:MM, optional):</label>
+                                <input type="time" id="schedule_time-0" name="schedule_time[]"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="pause_duration-0" class="block text-sm font-medium text-gray-700">Pause After (seconds, optional):</label>
+                                <input type="number" step="0.1" id="pause_duration-0" name="pause_duration[]"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        min="0" value="0">
+                            </div>
+                            <!-- Remove button (hidden for the first input) -->
+                            <button type="button" class="remove-audio-input px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition ease-in-out duration-150">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" id="addAudioInput" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition ease-in-out duration-150">
+                        Add Another Audio
+                    </button>
+
+                    <button type="submit" id="submitAudioForm" class="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition ease-in-out duration-150 btn-primary">
+                        <span id="formButtonText">Play/Schedule Audios</span>
+                        <div id="formSpinner" class="spinner ml-2 hidden"></div>
+                    </button>
+                </form>
+
+                <!-- Audio Player Display -->
+                <div class="mt-6 text-center">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Generated Audio:</h2>
+                    <audio controls id="mainAudioPlayer" class="w-full rounded-md shadow-sm">
+                        <source src="{{ audio_path | default('') }}" type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>
+
+            <!-- Vertical Divider (visible on medium screens and up) -->
+            <div class="hidden md:block vertical-divider"></div>
+
+            <!-- Right Column: Flight Information (approx 60%) -->
+            <div class="w-full md:w-3/5 md:pl-4">
+                <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Flight Information</h1>
+
+                <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200 mb-8">
+                    <table class="min-w-full divide-y divide-gray-200 flight-table">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Flight No
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Departure
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Arrival
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    From
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    To
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- Flight Data will be dynamically inserted here by Jinja2 -->
+                            {% if flight_details %}
+                                {% for flight in flight_details %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ flight.flight_no }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ flight.departure_time }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ flight.arrival_time }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ flight.from_city }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ flight.to_city }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if flight.status == 'On Time' %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {{ flight.status }}
+                                            </span>
+                                        {% elif flight.status == 'Delayed' %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                {{ flight.status }}
+                                            </span>
+                                        {% elif flight.status == 'Boarding' %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                {{ flight.status }}
+                                            </span>
+                                        {% else %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                {{ flight.status }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button type="button" 
+                                                class="play-announcement-btn inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition ease-in-out duration-150"
+                                                data-flight-id="{{ flight.id }}">
+                                            <span class="button-text">Announce</span>
+                                            <div class="spinner ml-2 hidden"></div>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                                        No flight data available. Add flights via the Admin Panel.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioInputsContainer = document.getElementById('audioInputsContainer');
+            const addAudioInputButton = document.getElementById('addAudioInput');
+            const mainAudioPlayer = document.getElementById('mainAudioPlayer');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const submitAudioFormButton = document.getElementById('submitAudioForm');
+            const formButtonText = document.getElementById('formButtonText');
+            const formSpinner = document.getElementById('formSpinner');
+
+            let inputCount = audioInputsContainer.children.length > 0 ? audioInputsContainer.children.length - 1 : 0; 
+            
+            // Function to create a new audio input group
+            function createAudioInputGroup() {
+                inputCount++; // Increment count for unique IDs
+                const newDiv = document.createElement('div');
+                newDiv.classList.add('audio-input-group', 'flex', 'flex-col', 'sm:flex-row', 'items-end', 'space-y-2', 'sm:space-y-0', 'sm:space-x-2');
+                newDiv.innerHTML = `
+                    <div class="flex-grow">
+                        <label for="phrase-${inputCount}" class="block text-sm font-medium text-gray-700">Enter Phrase (comma-separated):</label>
+                        <input type="text" id="phrase-${inputCount}" name="phrase[]" required
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="schedule_time-${inputCount}" class="block text-sm font-medium text-gray-700">Schedule Time (HH:MM, optional):</label>
+                        <input type="time" id="schedule_time-${inputCount}" name="schedule_time[]"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="pause_duration-${inputCount}" class="block text-sm font-medium text-gray-700">Pause After (seconds, optional):</label>
+                        <input type="number" step="0.1" id="pause_duration-${inputCount}" name="pause_duration[]"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                               min="0" value="0">
+                    </div>
+                    <button type="button" class="remove-audio-input px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition ease-in-out duration-150">
+                        &times;
+                    </button>
+                `;
+                audioInputsContainer.appendChild(newDiv);
+
+                // Show remove button for all existing groups
+                document.querySelectorAll('.remove-audio-input').forEach(btn => {
+                    btn.classList.remove('hidden');
+                });
+            }
+
+            // Event listener for adding new input fields
+            addAudioInputButton.addEventListener('click', createAudioInputGroup);
+
+            // Event listener for removing input fields (delegated)
+            audioInputsContainer.addEventListener('click', function(event) {
+                if (event.target.classList.contains('remove-audio-input')) {
+                    const groupToRemove = event.target.closest('.audio-input-group');
+                    if (groupToRemove) {
+                        groupToRemove.remove();
+                        // If only one input group remains, hide its remove button
+                        if (audioInputsContainer.children.length === 1) {
+                            audioInputsContainer.querySelector('.remove-audio-input').classList.add('hidden');
+                        }
+                    }
+                }
+            });
+
+            // Initially hide the remove button for the first input if it's the only one
+            if (audioInputsContainer.children.length === 1) {
+                audioInputsContainer.querySelector('.remove-audio-input').classList.add('hidden');
+            }
+
+            // Function to display messages
+            function displayMessage(type, text) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('px-4', 'py-3', 'rounded-md', 'relative', 'mb-2', 'message-box'); /* Added message-box class */
+                if (type === 'success') {
+                    messageDiv.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+                } else if (type === 'error') {
+                    messageDiv.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+                } else if (type === 'info') {
+                    messageDiv.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+                }
+                messageDiv.innerHTML = `<span class="block sm:inline">${text}</span>`;
+                messagesContainer.prepend(messageDiv); // Add to the top
+                
+                // Automatically remove message after 5 seconds
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 5000);
+            }
+
+            // Show loading indicator for manual form submission
+            document.getElementById('audioForm').addEventListener('submit', function() {
+                formButtonText.classList.add('hidden');
+                formSpinner.classList.remove('hidden');
+                submitAudioFormButton.disabled = true; // Disable button during submission
+                displayMessage('info', 'Processing audio request...');
+            });
+
+            // Event listener for "Announce" buttons
+            document.querySelectorAll('.play-announcement-btn').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const flightId = this.dataset.flightId;
+                    const buttonTextSpan = this.querySelector('.button-text');
+                    const buttonSpinner = this.querySelector('.spinner');
+
+                    // Show loading indicator on the specific button
+                    buttonTextSpan.classList.add('hidden');
+                    buttonSpinner.classList.remove('hidden');
+                    this.disabled = true; // Disable button during request
+                    displayMessage('info', `Generating announcement for Flight ID: ${flightId}...`);
+
+                    try {
+                        const response = await fetch(`/play_flight_announcement/${flightId}`);
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            if (data.audio_path) {
+                                // Update the audio player's source and play
+                                mainAudioPlayer.src = data.audio_path;
+                                mainAudioPlayer.load(); // Load the new audio
+                                mainAudioPlayer.play(); // Play it
+
+                                displayMessage('success', `✅ Announcement for Flight ID ${flightId} is playing!`);
+                            } else {
+                                displayMessage('error', `❌ No audio path returned for Flight ID ${flightId}.`);
+                            }
+                        } else {
+                            displayMessage('error', `❌ Error playing announcement for Flight ID ${flightId}: ${data.error || 'Unknown error'}.`);
+                        }
+                    } catch (error) {
+                        console.error('Fetch error:', error);
+                        displayMessage('error', `❌ Network error or server issue for Flight ID ${flightId}. Check console.`);
+                    } finally {
+                        // Hide loading indicator and re-enable button
+                        buttonTextSpan.classList.remove('hidden');
+                        buttonSpinner.classList.add('hidden');
+                        this.disabled = false;
+                    }
+                });
+            });
+
+            // Update the initial audio player source if audio_path exists from a form submission
+            const initialAudioPath = "{{ audio_path | default('') }}";
+            if (initialAudioPath) {
+                mainAudioPlayer.src = initialAudioPath;
+                mainAudioPlayer.load();
+                // If this page load is due to an immediate playback, the audio will start automatically
+                // due to the browser's default behavior for <audio controls>.
+                // If you want to explicitly play it, uncomment: mainAudioPlayer.play(); 
+            }
+        });
+    </script>
+</body>
+</html>
