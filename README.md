@@ -83,10 +83,9 @@ FFmpeg (required by Pydub for audio processing). Download from ffmpeg.org and en
 A Google Gemini API Key. Get one from Google AI Studio.
 
 2. Clone the Repository
-git clone https://github.com/YOUR_GITHUB_USERNAME/Flight-Announcement-System.git
+git clone https://github.com/C0Aditya/Flight-Announcement-System.git
 cd Flight-Announcement-System
 
-(Replace YOUR_GITHUB_USERNAME and Flight-Announcement-System with your actual GitHub username and repository name once you've pushed it.)
 
 3. Set up a Virtual Environment (Recommended)
 python -m venv venv
