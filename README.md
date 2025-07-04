@@ -114,7 +114,7 @@ Update the database connection string in app.py:
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:YOUR_MYSQL_PASSWORD@localhost/audiofiles'
 
-Replace YOUR_MYSQL_PASSWORD with your MySQL root password.
+
 
 6. Configure Gemini API Key
 Open app.py and locate the api_key variables within the generate_travel_tips and generate_contextual_announcement functions. Replace "YOUR_GEMINI_API_KEY_HERE" with your actual Gemini API key:
