@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Insert Audio Record</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("/static/your-background.jpg"); /* Replace with your image */
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            max-width: 500px;
+            margin: 60px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+        }
+        h2, h3 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        input[type="text"], select, input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 6px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .drop-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin-top: 10px;
+            text-align: center;
+            color: #666;
+            border-radius: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 25px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🎙️ Insert Audio Record</h2>
+        <form method="POST">
+            <label>Select Table:</label>
+            <select name="table_name">
+                <option value="file_data">file_data</option>
+                <option value="gate_data">gate_data</option>
+                <option value="city_data">city_data</option>
+                <option value="airlines_data">airlines_data</option>
+            </select>
+
+            <label>Index No:</label>
+            <input type="text" name="index_no" required>
+
+            <label>Path:</label>
+            <input type="text" name="path" required>
+
+            <label>Description:</label>
+            <input type="text" name="description" required>
+
+            <button type="submit">Insert Record</button>
+
+            {% if message %}
+                <p class="success">{{ message }}</p>
+            {% endif %}
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+        </form>
+
+        <hr>
+
+        <h3>📁 Upload Audio File</h3>
+        <form method="POST" action="/upload" enctype="multipart/form-data">
+            <label>Upload Audio File:</label>
+            <div class="drop-area">
+                Drag and drop your file here or click to select
+                <input type="file" name="file" accept=".wav" required>
+            </div>
+
+            <label>Description:</label>
+            <input type="text" name="description" placeholder="e.g., Flight announcement" required>
+
+            <label>Select Table:</label>
+            <select name="table">
+                <option value="file_data">file_data</option>
+                <option value="gate_data">gate_data</option>
+                <option value="city_data">city_data</option>
+                <option value="airlines_data">airlines_data</option>
+            </select>
+
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+</body>
+</html>
