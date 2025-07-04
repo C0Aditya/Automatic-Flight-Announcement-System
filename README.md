@@ -142,6 +142,23 @@ Ensure the uploads/ directory exists in your project root.
 
 When uploading, the description should match the exact phrase (case-insensitive, punctuation-insensitive) you expect the system to look up (e.g., "Good morning ladies and gentlemen", "flight", "FL123", "Delhi", "gate 5").
 
+10. Database Setup
+Create the MySQL Database:
+Ensure your MySQL server is running. Log in to your MySQL server (e.g., via MySQL Workbench, command line) and create a database named audiofiles before running the Flask application:
+
+CREATE DATABASE audiofiles;
+
+Configure Database Connection:
+Update the database connection string in app.py:
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:YOUR_MYSQL_PASSWORD@localhost/audiofiles'
+
+Replace YOUR_MYSQL_PASSWORD with your MySQL root password.
+
+Database Tables:
+The Flask application will automatically create the necessary tables (file_data, gate_data, city_data, airlines_data, flight_details) within the audiofiles database when you run app.py for the first time.
+
+
 Usage
 Flight Announcements (Home Page):
 
