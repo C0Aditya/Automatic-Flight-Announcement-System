@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.env
+.vscode/ # If you use VS Code and want to ignore its settings
+.DS_Store # macOS specific
+Thumbs.db # Windows specific
+
+# Database files (if SQLite, adjust if using MySQL directly)
+*.db
+*.sqlite
+*.sqlite3
+
+# Flask-specific
+instance/
+.flaskenv
+
+# Log files
+*.log
+
+# Uploads and generated audio
+uploads/
+static/output.wav
+static/scheduled/
